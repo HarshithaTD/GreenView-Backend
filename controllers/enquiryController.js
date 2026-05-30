@@ -139,7 +139,8 @@ const getAllEnquiries =
           .skip(
             (page - 1) * limit,
           )
-          .limit(Number(limit));
+          .limit(Number(limit))
+          .lean();
 
       const total =
         await Enquiry.countDocuments(
@@ -182,7 +183,8 @@ const getRecentEnquiries =
           .sort({
             createdAt: -1,
           })
-          .limit(10);
+          .limit(10)
+          .lean();
 
       res.status(200).json({
         success: true,
@@ -209,7 +211,7 @@ const getSingleEnquiry =
       const enquiry =
         await Enquiry.findById(
           req.params.id,
-        );
+        ).lean();
 
       if (!enquiry) {
         return res.status(404).json({
@@ -269,9 +271,11 @@ const searchEnquiries =
               },
             },
           ],
-        }).sort({
-          createdAt: -1,
-        });
+        })
+          .sort({
+            createdAt: -1,
+          })
+          .lean();
 
       res.status(200).json({
         success: true,
@@ -307,7 +311,7 @@ const updateEnquiryStatus =
             status,
           },
           {
-            new: true,
+            returnDocument: 'after',
           },
         );
 

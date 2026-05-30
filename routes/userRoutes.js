@@ -11,7 +11,9 @@ router.put('/users/:id', async (req, res) => {
       await User.findByIdAndUpdate(
         req.params.id,
         req.body,
-        {new: true},
+        {
+          returnDocument: 'after',
+        },
       );
 
     res.status(200).json({

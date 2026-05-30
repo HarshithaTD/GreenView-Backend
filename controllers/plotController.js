@@ -34,28 +34,53 @@ const serializePlot = plot => {
   }
 
   const data =
-    typeof plot.toObject === 'function' ? plot.toObject() : plot;
+    typeof plot.toObject === 'function'
+      ? plot.toObject()
+      : plot;
 
   return {
     ...data,
+
     title:
       data.title ||
       data.plotTitle ||
       '',
+
     location:
       data.location ||
       data.township ||
       '',
+
     image: data.image
       ? String(data.image).replace(
           /\\/g,
           '/',
         )
       : '',
-    status: normalizeStatus(data.status),
+
+    status: normalizeStatus(
+      data.status,
+    ),
+
+    amenities: {
+      parkDistance:
+        data?.amenities
+          ?.parkDistance || '',
+
+      schoolDistance:
+        data?.amenities
+          ?.schoolDistance || '',
+
+      hospitalDistance:
+        data?.amenities
+          ?.hospitalDistance || '',
+
+      marketDistance:
+        data?.amenities
+          ?.marketDistance || '',
+    },
   };
 };
-
 /* =========================
    ADD PLOT
 ========================= */
@@ -204,77 +229,134 @@ const getSinglePlot = async (req, res) => {
 /* =========================
    UPDATE PLOT
 ========================= */
+const updatePlot = async (req, res) => {
+  try {
+   const existingPlot =
+  await Plot.findById(req.params.id);
 
-const updatePlot =
-  async (req, res) => {
-    try {
-    const updatedData = {
-      ...req.body,
-    };
+if (!existingPlot) {
+  return res.status(404).json({
+    success: false,
+    message: 'Plot not found',
+  });
+}
 
-      if (updatedData.plotTitle && !updatedData.title) {
-        updatedData.title = updatedData.plotTitle;
-        delete updatedData.plotTitle;
-      }
+const updateFields = {
+  title:
+    req.body.title ??
+    existingPlot.title,
 
-      if (updatedData.township && !updatedData.location) {
-        updatedData.location = updatedData.township;
-        delete updatedData.township;
-      }
+  location:
+    req.body.location ??
+    existingPlot.location,
 
-      if (updatedData.status) {
-        updatedData.status = normalizeStatus(
-          updatedData.status,
-        );
-      }
+  sector:
+    req.body.sector ??
+    existingPlot.sector,
 
-      if (req.file) {
-        updatedData.image =
-          normalizeImagePath(req.file);
-      }
+  size:
+    req.body.size ??
+    existingPlot.size,
 
-      const updatedPlot =
-        await Plot.findByIdAndUpdate(
-          req.params.id,
-          updatedData,
-          {
-            new: true,
-          },
-        );
+  price:
+    req.body.price ??
+    existingPlot.price,
 
-      if (!updatedPlot) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message:
-              'Plot not found',
-          });
-      }
+  facing:
+    req.body.facing ??
+    existingPlot.facing,
 
-      res.status(200).json({
-        success: true,
-        message:
-          'Plot updated successfully',
-        plot: serializePlot(updatedPlot),
-      });
+  dimension:
+    req.body.dimension ??
+    existingPlot.dimension,
 
-      getIO(req)?.emit(
-        'plot:updated',
-        serializePlot(updatedPlot),
+  description:
+    req.body.description ??
+    existingPlot.description,
+
+  status: req.body.status
+    ? normalizeStatus(req.body.status)
+    : existingPlot.status,
+
+  amenities: {
+    parkDistance:
+      req.body.parkDistance ??
+      existingPlot.amenities?.parkDistance,
+
+    schoolDistance:
+      req.body.schoolDistance ??
+      existingPlot.amenities?.schoolDistance,
+
+    hospitalDistance:
+      req.body.hospitalDistance ??
+      existingPlot.amenities?.hospitalDistance,
+
+    marketDistance:
+      req.body.marketDistance ??
+      existingPlot.amenities?.marketDistance,
+  },
+};
+
+    if (req.file) {
+      updateFields.image =
+        normalizeImagePath(req.file);
+    } else if (
+      req.body.removeImage === 'true' ||
+      req.body.removeImage === true
+    ) {
+      updateFields.image = '';
+    }
+
+    const updatedPlot =
+      await Plot.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: updateFields,
+        },
+        {
+          new: true,
+          runValidators: true,
+        },
       );
-      getIO(req)?.emit('plots:changed');
-      getIO(req)?.emit('dashboard:changed');
-    } catch (error) {
-      res.status(500).json({
+
+    if (!updatedPlot) {
+      return res.status(404).json({
         success: false,
-        message:
-          error.message,
+        message: 'Plot not found',
       });
     }
-  };
 
-/* =========================
+    getIO(req)?.emit(
+      'plot:updated',
+      serializePlot(updatedPlot),
+    );
+
+    getIO(req)?.emit(
+      'plots:changed',
+    );
+
+    getIO(req)?.emit(
+      'dashboard:changed',
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        'Plot updated successfully',
+      plot: serializePlot(updatedPlot),
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+/* ========================
    UPDATE PLOT STATUS
 ========================= */
 

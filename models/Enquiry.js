@@ -125,6 +125,11 @@ enquirySchema.index({
   plotLocation: 'text',
 });
 
+enquirySchema.index({
+  status: 1,
+  createdAt: -1,
+});
+
 module.exports = mongoose.model(
   'Enquiry',
   enquirySchema,
