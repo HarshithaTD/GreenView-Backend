@@ -9,6 +9,7 @@ const cookieParser = require(
 const path = require('path');
 
 const dotenv = require('dotenv');
+const cartRoutes = require('./routes/cartRoutes');
 
 dotenv.config();
 
@@ -75,11 +76,11 @@ app.use('/api', authRoutes);
 
 app.use('/api', userRoutes);
 
-app.use(
-  '/api/plots', plotRoutes);
+app.use('/api/plots', plotRoutes);
 
-app.use(
-  '/api/enquiries', enquiryRoutes);
+app.use( '/api/enquiries', enquiryRoutes);
+
+app.use('/api/cart', cartRoutes);
 
 app.get('/api/dashboard/stats', getDashboardStats);
 

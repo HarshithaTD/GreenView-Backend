@@ -28,6 +28,8 @@ const normalizeImagePath = file => {
   return file.path.replace(/\\/g, '/');
 };
 
+const isBlank = value => !String(value || '').trim();
+
 const serializePlot = plot => {
   if (!plot) {
     return plot;
@@ -109,16 +111,24 @@ const addPlot = async (req, res) => {
     const normalizedLocation = location || township;
 
     if (
-      !normalizedTitle ||
-      !normalizedLocation ||
-      !sector ||
-      !size ||
-      !price
+      isBlank(normalizedTitle) ||
+      isBlank(normalizedLocation) ||
+      isBlank(sector) ||
+      isBlank(size) ||
+      isBlank(price) ||
+      isBlank(facing) ||
+      isBlank(dimension) ||
+      isBlank(description) ||
+      isBlank(status) ||
+      isBlank(parkDistance) ||
+      isBlank(schoolDistance) ||
+      isBlank(hospitalDistance) ||
+      isBlank(marketDistance)
     ) {
       return res.status(400).json({
         success: false,
         message:
-          'Title, location, sector, size, and price are required',
+          'All plot fields except image are required',
       });
     }
 
