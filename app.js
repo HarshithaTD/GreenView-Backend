@@ -34,6 +34,7 @@ const {
   getDashboardStats,
 } = require('./controllers/dashboardController');
 
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 
@@ -83,6 +84,8 @@ app.use( '/api/enquiries', enquiryRoutes);
 app.use('/api/cart', cartRoutes);
 
 app.get('/api/dashboard/stats', getDashboardStats);
+
+app.use('/api/booking', bookingRoutes);
 
 // TEST ROUTE
 app.get('/', (req, res) => {

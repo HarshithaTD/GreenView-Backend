@@ -1,5 +1,9 @@
 const Cart = require('../models/CartModel');
 const Plot = require('../models/PlotModel');
+const mongoose = require('mongoose');
+
+const isValidObjectId = id =>
+  mongoose.Types.ObjectId.isValid(id);
 
 // =========================
 // Add To Cart
@@ -13,11 +17,16 @@ exports.addToCart = async (
     const {userId, plotId} =
       req.body;
 
-    if (!userId || !plotId) {
+    if (
+      !userId ||
+      !plotId ||
+      !isValidObjectId(userId) ||
+      !isValidObjectId(plotId)
+    ) {
       return res.status(400).json({
         success: false,
         message:
-          'userId and plotId are required',
+          'Valid userId and plotId are required',
       });
     }
 
@@ -72,6 +81,14 @@ exports.addToCart = async (
       data: cartItem,
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message:
+          'Plot already exists in cart',
+      });
+    }
+
     console.error(error);
 
     return res.status(500).json({
@@ -94,6 +111,14 @@ exports.getCartItems = async (
     const {userId} =
       req.params;
 
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Valid userId is required',
+      });
+    }
+
     const page =
       Number(req.query.page) ||
       1;
@@ -105,26 +130,26 @@ exports.getCartItems = async (
     const skip =
       (page - 1) * limit;
 
-    const cartItems =
-      await Cart.find({
-        userId,
-      })
-        .populate({
-          path: 'plotId',
-          select:
-            'title location sector size price image facing status',
+    const [cartItems, totalItems] =
+      await Promise.all([
+        Cart.find({
+          userId,
         })
-        .sort({
-          createdAt: -1,
-        })
-        .skip(skip)
-        .limit(limit)
-        .lean();
-
-    const totalItems =
-      await Cart.countDocuments({
-        userId,
-      });
+          .populate({
+            path: 'plotId',
+            select:
+              'title location sector size price image facing status',
+          })
+          .sort({
+            createdAt: -1,
+          })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Cart.countDocuments({
+          userId,
+        }),
+      ]);
 
     return res.status(200).json({
       success: true,
@@ -153,6 +178,14 @@ exports.getCartCount =
     try {
       const {userId} =
         req.params;
+
+      if (!isValidObjectId(userId)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Valid userId is required',
+        });
+      }
 
       const count =
         await Cart.countDocuments({
@@ -183,6 +216,14 @@ exports.removeCartItem =
     try {
       const {cartId} =
         req.params;
+
+      if (!isValidObjectId(cartId)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Valid cartId is required',
+        });
+      }
 
       const deletedItem =
         await Cart.findByIdAndDelete(
@@ -224,6 +265,14 @@ exports.clearCart = async (
   try {
     const {userId} =
       req.params;
+
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Valid userId is required',
+      });
+    }
 
     const result =
       await Cart.deleteMany({
