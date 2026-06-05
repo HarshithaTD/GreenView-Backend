@@ -42,6 +42,17 @@ exports.createBooking =
     return booking;
   };
 
+exports.getUserBookings =
+  async userId => {
+    return await Booking.find({
+      user: userId,
+    })
+      .populate('plot')
+      .sort({
+        createdAt: -1,
+      });
+  };
+
 exports.getBooking =
   async bookingId => {
     const booking =
