@@ -14,6 +14,6 @@
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["node", "express"]
   },
-  "include": ["**/*.ts", "index.d.ts"],
+  "include": ["**/*.ts", "index.d.ts", "index.js"],
   "exclude": ["node_modules", "dist"]
 }
