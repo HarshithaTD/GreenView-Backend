@@ -1,7 +1,50 @@
-const mongoose = require('mongoose');
+import mongoose, {
+  Schema,
+  Document,
+  Model,
+} from 'mongoose';
 
-const plotSchema =
-  new mongoose.Schema(
+// =========================
+// Amenities Interface
+// =========================
+
+export interface IAmenities {
+  parkDistance: string;
+  schoolDistance: string;
+  hospitalDistance: string;
+  marketDistance: string;
+}
+
+// =========================
+// Plot Interface
+// =========================
+
+export interface IPlot
+  extends Document {
+  title: string;
+  location: string;
+  sector: string;
+  size: string;
+  price:  number;
+  facing: string;
+  dimension: string;
+  description: string;
+  amenities: IAmenities;
+  status:
+    | 'Available'
+    | 'Booked'
+    | 'Sold';
+  image: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// =========================
+// Plot Schema
+// =========================
+
+const PlotSchema =
+  new Schema<IPlot>(
     {
       title: {
         type: String,
@@ -28,7 +71,7 @@ const plotSchema =
       },
 
       price: {
-        type: String,
+        type: Number,
         required: true,
         trim: true,
       },
@@ -97,19 +140,31 @@ const plotSchema =
     },
   );
 
-plotSchema.index({
+// =========================
+// Indexes
+// =========================
+
+// Filter by status and latest
+PlotSchema.index({
   status: 1,
   createdAt: -1,
 });
 
-plotSchema.index({
+// Text search
+PlotSchema.index({
   title: 'text',
   location: 'text',
   sector: 'text',
 });
 
-module.exports =
-  mongoose.model(
+// =========================
+// Model Export
+// =========================
+
+const Plot: Model<IPlot> =
+  mongoose.model<IPlot>(
     'Plot',
-    plotSchema,
+    PlotSchema,
   );
+
+export default Plot;

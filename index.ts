@@ -1,25 +1,29 @@
-const http = require('http');
-const {Server} = require('socket.io');
-const app = require('./app');
-const connectDB = require('./config/db');
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import connectDB from './config/db';
+import app from './app';
 
+
+// Connect DB
 connectDB();
 
-const PORT =
-  process.env.PORT || 3001;
+const PORT: number = Number(process.env.PORT) || 3001;
 
 const server = http.createServer(app);
 
-const io = new Server(server, {
+// Socket.IO setup
+const io = new SocketIOServer(server, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   },
 });
 
+// Attach io to express app
 app.set('io', io);
 
-io.on('connection', socket => {
+// Socket events
+io.on('connection', (socket) => {
   if (process.env.NODE_ENV !== 'production') {
     console.log(`Socket connected: ${socket.id}`);
   }
@@ -31,8 +35,7 @@ io.on('connection', socket => {
   });
 });
 
+// Start server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(
-    `Server running on port ${PORT}`,
-  );
+  console.log(`Server running on port ${PORT}`);
 });

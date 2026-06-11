@@ -1,22 +1,25 @@
-const express = require('express');
+import express, {
+  Request,
+  Response,
+  Router,
+} from 'express';
 
-const router = express.Router();
-
-const {
+import {
   addPlot,
   getPlots,
   getSinglePlot,
   updatePlot,
   updatePlotStatus,
   deletePlot,
-} = require('../controllers/plotController');
+} from '../controllers/plotController';
 
-const upload = require('../middleware/uploadMiddleware');
+import upload from '../middleware/uploadMiddleware';
+
+const router: Router = express.Router();
 
 /* =========================
    ADD PLOT
 ========================= */
-
 router.post(
   '/add-plot',
   upload.single('image'),
@@ -26,25 +29,16 @@ router.post(
 /* =========================
    GET ALL PLOTS
 ========================= */
-
-router.get(
-  '/all-plots',
-  getPlots,
-);
+router.get('/all-plots', getPlots);
 
 /* =========================
    GET SINGLE PLOT
 ========================= */
-
-router.get(
-  '/:id',
-  getSinglePlot,
-);
+router.get('/:id', getSinglePlot);
 
 /* =========================
    UPDATE PLOT
 ========================= */
-
 router.put(
   '/:id',
   upload.single('image'),
@@ -54,19 +48,11 @@ router.put(
 /* =========================
    UPDATE STATUS
 ========================= */
-
-router.patch(
-  '/:id/status',
-  updatePlotStatus,
-);
+router.patch('/:id/status', updatePlotStatus);
 
 /* =========================
    DELETE PLOT
 ========================= */
+router.delete('/:id', deletePlot);
 
-router.delete(
-  '/:id',
-  deletePlot,
-);
-
-module.exports = router;
+export default router;
